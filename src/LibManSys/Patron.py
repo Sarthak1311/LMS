@@ -44,8 +44,8 @@ class Patron:
             return_date_str = return_date.strftime('%Y-%m-%d')
 
 
-            query = "INSERT INTO patron(name, BookID, issue_date, return_date) VALUES (%s, %s, %s, %s)"
-            Val = (name, bookid[0], issue_date_obj.strftime('%Y-%m-%d'), return_date_str)  
+            query = "INSERT INTO patron(name, BookID, issue_date, return_date,bookreturned) VALUES (%s, %s, %s, %s,%s)"
+            Val = (name, bookid[0], issue_date_obj.strftime('%Y-%m-%d'), return_date_str,False)  
 
             cursor.execute(query, Val)
             conn.commit()
@@ -79,12 +79,18 @@ class Patron:
             val = (bookid,)
             cursor.execute(query1,val)
             nameofbook = cursor.fetchone()
+            
 
             print(f"ID of the patron :{fetched_values[0][0]}")
             print(f"Name of the patron :{fetched_values[0][1]}")
             print(f"Book issued :{nameofbook[0]}")
             print(f"issue date of book :{fetched_values[0][3]}")
             print(f"return date of book :{fetched_values[0][4]}")
+            if fetched_values[0][5] == 0:
+                print("book not returned ")
+            else:
+                print("book returned")
+
 
 
             
@@ -95,5 +101,78 @@ class Patron:
         finally:
             cursor.close()
             conn.close()
+
+
+    def check_defaulter(self,name):
+        
+        logging.info("checking for the defaulter ")
+        try:
+            
+            conn = self.connect_db()
+            cursor = conn.cursor()
+            query="select return_date,bookreturned from patron where name = %s"
+            values =(name,)
+            cursor.execute(query,values)
+            fetched_values = cursor.fetchall()
+
+            returningDate = fetched_values[0][0]
+            isreturn = fetched_values[0][1]
+
+            if isreturn:
+                print(f"{name} returned the book ")
+            else:
+                if self.check(isreturn):
+                    print(f"{name} has to returned the book with fine")
+                else:
+                    print(f"{name} can return the book till {returningDate}")
+                    logging.info("checked for the defaulter ")
+                
+        except Exception as e :
+            raise CustomException(e,sys)
+        finally:
+            cursor.close()
+            conn.close()
+
+            # helper function for check_defaulter
+    def check(self, input_date):
+        today_date = datetime.now().date()
+
+        if isinstance(input_date, int) and input_date != 0:
+            input_date_str = str(input_date)  
+            try:
+                input_date = datetime.strptime(input_date_str, '%Y%m%d').date()  
+            except ValueError:
+                print(f"Invalid date format for input: {input_date}")
+                return False
+        else:
+            print(f"Invalid input date: {input_date}")
+            return False
+        if today_date > input_date:
+            return True
+        else:
+            return False
+        
+
+    def listAllPatron(self):
+
+        logging.info("listing list of patron")
+
+        try:
+            conn = self.connect_db()
+            cursor = conn.cursor()
+            query ="select name from patron"
+        
+            cursor.execute(query)
+            listofName = cursor.fetchall()
+            for i , name1 in enumerate(listofName,start=1):
+                print(f"{i}. {name1[0]}")
+            
+
+        except Exception as e:
+            raise CustomException(e,sys)
+        finally:
+            cursor.close()
+            conn.close()
+
 
 
