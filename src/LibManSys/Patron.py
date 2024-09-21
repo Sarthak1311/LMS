@@ -174,5 +174,55 @@ class Patron:
             cursor.close()
             conn.close()
 
+    def getOverDuePatron(self):
+
+        logging.info("getting the name of all OverDue patron ")
+        try: 
+            conn = self.connect_db()
+            cursor = conn.cursor()
+            
+            query = " select name from patron where return_date < curdate() AND bookreturned = FALSE"
+            cursor.execute(query)
+
+            listOfName = cursor.fetchall()
+
+            for i , name in enumerate(listOfName ,start= 1):
+                print(f"{i}. {name[0]} ")
+             
+        except Exception as e:
+            raise CustomException(e,sys)
+        
+        finally:
+            cursor.close()
+            conn.close()
+
+    def bookreturned(self,name,bookname):
+
+        logging.info("changing the bookreturned to true")
+        try: 
+            conn = self.connect_db()
+            cursor = conn.cursor()
+            
+            query = "select BookID from books where name = %s"
+            val = (bookname,)
+            cursor.execute(query,val)
+            bookid = cursor.fetchall()
+
+            query = "update patron set bookreturned = TRUE where name = %s AND BooKID = %s"
+            value = (name,bookid[0][0])
+            cursor.execute(query,value)
+
+            conn.commit()
+
+
+            print(f"{name} has returned the book: {bookname}")
+             
+        except Exception as e:
+            raise CustomException(e,sys)
+        
+        finally:
+            cursor.close()
+            conn.close()
+
 
 
