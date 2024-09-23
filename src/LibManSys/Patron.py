@@ -18,6 +18,8 @@ class Patron:
         )
 
     def add(self, name, book_issue, issue_date):
+        name = name.lower()
+        book_issue = book_issue.lower()
         logging.info("Adding information of patron")
         try:
             conn = self.connect_db()
@@ -27,6 +29,7 @@ class Patron:
             value = (book_issue,)
             cursor.execute(fetquery, value)
             bookid = cursor.fetchone()
+            
 
             if bookid is None:
                 raise ValueError(f"No book found with name {book_issue}")
@@ -61,6 +64,7 @@ class Patron:
             conn.close()
 
     def patronInfo(self,name):
+        name = name.lower()
 
         try:
             logging.info("retrieving the information")
@@ -104,6 +108,7 @@ class Patron:
 
 
     def check_defaulter(self,name):
+        name = name.lower()
         
         logging.info("checking for the defaulter ")
         try:
@@ -197,6 +202,8 @@ class Patron:
             conn.close()
 
     def bookreturned(self,name,bookname):
+        name = name.lower()
+        bookname = bookname.lower()
 
         logging.info("changing the bookreturned to true")
         try: 
